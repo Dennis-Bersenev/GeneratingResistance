@@ -1,14 +1,24 @@
 import anndata as ad
 import scanpy as sc
 import scipy as sp
+import glob
 
 
-# TODO: make this its own thing which can take command line arguments etc
-uncompressed_filename = './data/replicate1/untreated.tsv'
-saved_filename = './data/untreated1.h5ad'
+# test names:
+# uncompressed_filename = './data/replicate1/untreated.tsv'
+# saved_filename = './data/untreated1.h5ad'
 
-# for tsv
-adata = sc.read_csv(uncompressed_filename, delimiter='\t')
-adata.X = sp.sparse.csr_matrix(adata.X)
+# tsvs by default
+def text_to_adata(input_file: str, output_file: str, delimiter='\t'):
+    adata = sc.read_csv(input_file, delimiter=delimiter)
+    adata.X = sp.sparse.csr_matrix(adata.X)
+    adata.write_h5ad(output_file)
 
-adata.write_h5ad(saved_filename)
+
+data_dir = "./data/replicate1/"
+output_dir = "./data/"
+
+for filepath in glob.iglob(data_dir + "*.tsv"):
+    outfile = output_dir + (filepath.split('/')[-1]).split('.')[0] + ".h5ad"
+    text_to_adata(filepath, outfile)
+    
