@@ -12,10 +12,11 @@ import glob
 def text_to_adata(input_file: str, output_file: str, delimiter='\t'):
     adata = sc.read_csv(input_file, delimiter=delimiter)
     adata.X = sp.sparse.csr_matrix(adata.X)
+    adata = adata.transpose()
     adata.write_h5ad(output_file)
 
 
-data_dir = "./data/replicate1/"
+data_dir = "/home/dennis/Downloads/replicate1/"
 output_dir = "./data/"
 
 for filepath in glob.iglob(data_dir + "*.tsv"):
