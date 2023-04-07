@@ -2,6 +2,7 @@ import anndata as ad
 import scanpy as sc
 import scipy as sp
 import glob
+import numpy as np
 
 
 # test names:
@@ -11,7 +12,7 @@ import glob
 # tsvs by default
 def text_to_adata(input_file: str, output_file: str, delimiter='\t'):
     adata = sc.read_csv(input_file, delimiter=delimiter)
-    adata.X = sp.sparse.csr_matrix(adata.X)
+    adata.X = sp.sparse.csr_matrix(adata.X, dtype=np.float32)
     adata = adata.transpose()
     adata.write_h5ad(output_file)
 
