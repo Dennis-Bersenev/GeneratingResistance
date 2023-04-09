@@ -98,3 +98,39 @@ Load in a pickled object.
 def load_pickle(object_name, save_path: str):
     with open(save_path, 'rb') as instream:
         object_name = pkl.load(instream)
+
+
+"""
+Combines all adata objects in a given directory.
+(merges observations from different conditions/batches into a single sample-aware datastructure) 
+
+Parameters
+data_dir: path to directory housing all the .h5ad files to merge.
+union: keep all genes (T) or only those found in each sample matrix (F).
+unique_names: if true hyphenates each cell's barcode with its corresponding sample label.
+obs_label: the name to use for the adata.obs column that will be created in the merged adata object.
+
+Return
+The merged adata object.
+"""
+def concatenate_samples(data_dir: str, union=True, unique_names=False, obs_label='sample'):
+    adatas = []
+    sample_labels = []
+    for filepath in glob.iglob(data_dir + "*.h5ad"):
+        filename = filepath.split('/')[-1]
+        sample_labels.append(filename.split('.')[0])
+        adatas.append(sc.read(data_dir + filename))
+
+    join_val = 'outer' if union else 'inner'
+    iu_val = sample_labels if unique_names else None
+
+    adata_temp = ad.concat(adatas, 
+                            label=obs_label, 
+                            keys=sample_labels,
+                            axis=0,
+                            join=join_val,
+                            index_unique=iu_val, 
+                            fill_value=np.float32(0.0))
+
+    adata_temp.var_names_make_unique()
+    return adata_temp
