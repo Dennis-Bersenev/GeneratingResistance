@@ -88,18 +88,18 @@ def directory_to_adata(data_dir: str, output_dir: str):
 """
 Convert and save the given object as a bytestream for quick future reloads. 
 """
-def write_pickle(object, save_path: str):
+def write_pickle(obj, save_path: str):
     with open(save_path, 'wb') as outstream:
-        pkl.dump(object, outstream)
+        pkl.dump(obj, outstream)
 
 """
 Load in a pickled object. 
 """
-def load_pickle(object_name, save_path: str):
+def load_pickle(save_path: str):
     with open(save_path, 'rb') as instream:
-        object_name = pkl.load(instream)
+        obj = pkl.load(instream)
     
-    return object_name
+    return obj
 
 
 """
