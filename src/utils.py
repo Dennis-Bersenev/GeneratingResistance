@@ -98,6 +98,8 @@ Load in a pickled object.
 def load_pickle(object_name, save_path: str):
     with open(save_path, 'rb') as instream:
         object_name = pkl.load(instream)
+    
+    return object_name
 
 
 """
