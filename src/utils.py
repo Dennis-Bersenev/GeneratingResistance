@@ -45,22 +45,22 @@ containing the first n_genes non-null entries from the given dataframe.
 def filter_duplicates(df: pd.DataFrame, n_genes: int):
     
     d = {}
+    # 1) Find and filter duplicates 
     for c in df.columns:
-        # 1) Find the duplicates
-        duplicate = None
+        # For the entries in each column
+        potential_duplicates = set()
         for i in range(len(df[c])):
             temp = df[c][i].split('-')
             
             if len(temp) > 2:
                 # replace with empty string
-                if duplicate and (duplicate == temp[1]):
+                if temp[1] in potential_duplicates:
                     df[c][i] = ''
-                
-                if not duplicate:
-                    duplicate = temp[1]
-    
+                else:
+                    potential_duplicates.add(temp[1])
+        
     for c in df.columns:
-        # 2) Filter out the duplicates
+        # 2) Return the top genes while ignoring the duplicates
         d[c] = []
         max_itr = len(df[c])
         itr = 0
