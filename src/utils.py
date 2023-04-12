@@ -126,14 +126,14 @@ Convert and save the given object as a bytestream for quick future reloads.
 """
 def save_pickle(object, save_path: str):
     with open(save_path, 'wb') as outstream:
-        pkl.dump(object, outstream)
+        pkl.dump(obj, outstream)
 
 """
 Load in a pickled object. 
 """
-def load_pickle(save_path: str):
-    with open(save_path, 'rb') as instream:
-        object_name = pkl.load(instream)
+def load_pickle(path: str):
+    with open(path, 'rb') as instream:
+      object_name = pkl.load(instream)
     return object_name
 
 
