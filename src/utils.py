@@ -58,7 +58,8 @@ def filter_duplicates(df: pd.DataFrame, n_genes: int):
                 
                 if not duplicate:
                     duplicate = temp[-1]
-                
+    
+    for c in df.columns:
         # 2) Filter out the duplicates
         d[c] = []
         max_itr = len(df[c])
@@ -68,8 +69,8 @@ def filter_duplicates(df: pd.DataFrame, n_genes: int):
                 d[c].append(df[c][itr])
             
             itr += 1
-    
-    return pd.DataFrame(data=d)
+    res = pd.DataFrame(data=d)
+    return res
 
 
 """
