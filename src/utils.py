@@ -53,11 +53,11 @@ def filter_duplicates(df: pd.DataFrame, n_genes: int):
             
             if len(temp) > 2:
                 # replace with empty string
-                if duplicate and (duplicate == temp[-1]):
+                if duplicate and (duplicate == temp[1]):
                     df[c][i] = ''
                 
                 if not duplicate:
-                    duplicate = temp[-1]
+                    duplicate = temp[1]
     
     for c in df.columns:
         # 2) Filter out the duplicates
