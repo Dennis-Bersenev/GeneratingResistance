@@ -21,9 +21,10 @@ Dataframe containing each cluster's genes ranked from most->least indicative of 
 def mrvi_identify_cell_states(adata: ad.AnnData, feature_space: str, neighbor_method: str):
     
     # Assumes Bacdrop replicate 1 cell read depth of 5,000
+    sc.pp.filter_cells(adata, min_genes=35)
     sc.pp.normalize_total(adata, target_sum=5000)
     sc.pp.log1p(adata)
-    sc.pp.filter_cells(adata, min_genes=40)
+    
     adata.raw = adata
 
     if (neighbor_method == 'gauss'):
@@ -36,6 +37,39 @@ def mrvi_identify_cell_states(adata: ad.AnnData, feature_space: str, neighbor_me
     df = pd.DataFrame(adata.uns['rank_genes_groups']['names'])
 
     return df
+
+"""
+Removes duplicate genes by creating a new dataframe with columns of length n_genes each 
+containing the first n_genes non-null entries from the given dataframe.  
+"""
+def filter_duplicates(df: pd.DataFrame, n_genes: int):
+    
+    d = {}
+    for c in df.columns:
+        # 1) Find the duplicates
+        duplicate = None
+        for i in range(len(df[c])):
+            temp = df[c][i].split('-')
+            
+            if len(temp) > 2:
+                # replace with empty string
+                if duplicate and (duplicate == temp[-1]):
+                    df[c][i] = ''
+                
+                if not duplicate:
+                    duplicate = temp[-1]
+                
+        # 2) Filter out the duplicates
+        d[c] = []
+        max_itr = len(df[c])
+        itr = 0
+        while (max_itr > itr) and (len(d[c]) < n_genes):
+            if df[c][itr] != '':
+                d[c].append(df[c][itr])
+            
+            itr += 1
+    
+    return pd.DataFrame(data=d)
 
 
 """
@@ -51,10 +85,10 @@ Return
 def write_cell_state_genes(ranked_groups: pd.DataFrame, outfile: str, n_genes=0):
 
     if n_genes == 0:
-        ranked_groups.to_csv('./out/genes.csv')
+        ranked_groups.to_csv(outfile)
     else:
         df = ranked_groups.head[n_genes]
-        df.to_csv('./out/genes.csv')
+        df.to_csv(outfile)
 
 
 
@@ -73,6 +107,7 @@ def text_to_adata(input_file: str, output_file: str, delimiter='\t'):
     adata = sc.read_csv(input_file, delimiter=delimiter)
     adata.X = sp.sparse.csr_matrix(adata.X, dtype=np.float32)
     adata = adata.transpose()
+    # TODO: replace duplicate names here, and re-run the entire pipeline ?
     adata.write_h5ad(output_file)
 
 
