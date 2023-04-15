@@ -1,3 +1,5 @@
 test/
 data/pickles/
 */__pycache__/*
+data/dge_analysis_inputs/
+*.tar.gz
