@@ -7,32 +7,67 @@ import numpy as np
 import pickle as pkl
 
 
+
+
+
 """
-Discovers different cell types, and identifies the representative genes of each type.
+Processes the input adata object using standard tools. 
+"""
+def process_adata(adata: ad.AnnData, gene_threshold=40, cell_threshold=20, normalize_counts=False, logarithmize=False):
+
+    sc.pp.filter_cells(adata, min_genes=gene_threshold)
+    sc.pp.filter_genes(adata, min_cells=cell_threshold)
+    adata.raw = adata
+
+    if normalize_counts:
+        sc.pp.normalize_total(adata, target_sum=1e4)
+    
+    if logarithmize:
+        sc.pp.log1p(adata)
+    
+    adata.raw = adata
+    return adata
+
+
+
+"""
+Performs the clustering specified by params on the given adata object by first computing the neighbourhood graph.
+
+feature_space: which matrix of observations to use in generating the neighborhood graph (select from adata.obsm)
+neighbor_method: method to generate neighborhood graph (only supports 'gauss' and knn)
+
+Return
+The same input adata object with associated information on neighbourhood graph and clusters assignments added.
+"""
+def cluster_adata(adata: ad.AnnData, feature_space: str, neighbor_method: str):
+
+    if (neighbor_method == 'gauss'):
+        sc.pp.neighbors(adata, use_rep=feature_space, knn=False, method='gauss')
+        adata.obsp['connectivities'] = sp.sparse.csr_matrix(adata.obsp['connectivities'], dtype=np.float32)
+        
+    elif (neighbor_method == 'knn'):
+        sc.pp.neighbors(adata, use_rep=feature_space, knn=True)
+        
+    else:
+        sc.pp.neighbors(adata)
+    
+    sc.tl.leiden(adata)
+    sc.tl.umap(adata)
+    return adata
+
+
+
+"""
+Identifies the representative genes of each type.
 
 Parameters
-adata: stores the Cell x Gene matrix and all associated meta information
-feature_space: which matrix of observations to use in generating the neighborhood graph (select from adata.obsm)
-neighbor_method: method to generate neighborhood graph (only supports 'gauss' and knn)   
+adata: stores the Cell x Gene matrix and all associated meta information, assumes counts are log normalized and neighbourhood graph has been computed. 
 
 Return
 Dataframe containing each cluster's genes ranked from most->least indicative of the cell state associated with the cluster 
 """
 def mrvi_identify_cell_states(adata: ad.AnnData, feature_space: str, neighbor_method: str):
     
-    # Assumes Bacdrop replicate 1 cell read depth of 5,000
-    sc.pp.filter_cells(adata, min_genes=35)
-    sc.pp.normalize_total(adata, target_sum=5000)
-    sc.pp.log1p(adata)
-    
-    adata.raw = adata
-
-    if (neighbor_method == 'gauss'):
-        sc.pp.neighbors(adata, use_rep=feature_space, knn=False, method='gauss')
-    else:
-        sc.pp.neighbors(adata, use_rep=feature_space, knn=True)
-
-    sc.tl.leiden(adata)
     sc.tl.rank_genes_groups(adata, 'leiden', method='t-test')
     df = pd.DataFrame(adata.uns['rank_genes_groups']['names'])
 
@@ -108,7 +143,6 @@ def text_to_adata(input_file: str, output_file: str, delimiter='\t'):
     adata = sc.read_csv(input_file, delimiter=delimiter)
     adata.X = sp.sparse.csr_matrix(adata.X, dtype=np.float32)
     adata = adata.transpose()
-    # TODO: replace duplicate names here, and re-run the entire pipeline ?
     adata.write_h5ad(output_file)
 
 
