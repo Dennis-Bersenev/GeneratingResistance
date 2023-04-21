@@ -1,11 +1,10 @@
 # GeneratingResistance
 <pre>
-To run example workbook:
+Environment Setup:
   conda create -n GenRes python=3.9 
   conda activate GenRes 
-  conda install -c conda-forge mamba (strongly recommend using mamba) 
-  mamba install -c conda-forge scanpy python-igraph leidenalg 
-  mamba install -c anaconda ipykernel <br/>
+  conda install -c conda-forge scanpy python-igraph leidenalg 
+  conda install -c anaconda ipykernel <br/>
 
 Overview of the notebooks:
   bacdrop - loads in the adata object containing all samples and replicates of Klebsiella pneumoniae MGH 66 used by ma et al<sup>1</sup>.
